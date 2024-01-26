@@ -1,4 +1,5 @@
 <template>
+  total items select : {{ selectIds.length }}
   <DynamicScroller
     :items="items"
     :min-item-size="54"
