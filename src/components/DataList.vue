@@ -1,16 +1,17 @@
 <template>
   total items select : {{ selectIds.length }}
+
   <DynamicScroller
     :items="items"
     :min-item-size="54"
-    class="scroller"
+    class="scroller table"
     :prerender="50"
     :listTag="'table'"
     :itemTag="'tr'"
     page-mode
   >
     <template v-slot="{ item, index, active }">
-      <thead v-if="index === 0">
+      <!-- <thead v-if="index === 0">
         <tr>
           <th scope="col">#</th>
           <th>
@@ -29,7 +30,7 @@
           <th scope="col">SKU</th>
           <th scope="col">Action</th>
         </tr>
-      </thead>
+      </thead> -->
 
       <DynamicScrollerItem
         :item="item"
@@ -38,7 +39,7 @@
         :size-dependencies="[item.field1]"
         tag="tr"
       >
-        <th scope="row">{{ item.index }}</th>
+        <th scope="row">{{ index }} - {{ index % 2 === 0 ? "A" : "B" }}</th>
 
         <td>
           <div class="form-check">
@@ -58,113 +59,10 @@
 
         <td>{{ item.field4 }}</td>
 
-        <td><button type="button" class="btn btn-danger">Delete</button></td>
+        <!-- <td><button type="button" class="btn btn-danger">Delete</button></td> -->
       </DynamicScrollerItem>
     </template>
   </DynamicScroller>
-
-  <!-- <DynamicScroller
-    :items="items"
-    :min-item-size="54"
-    class="scroller"
-    :prerender="50"
-    page-mode
-  >
-    <template v-slot="{ item, index, active }">
-      <DynamicScrollerItem
-        :item="item"
-        :active="active"
-        :data-index="index"
-        :size-dependencies="[item.field1]"
-        tag="tr"
-      >
-        <td class="text">{{ item.field1 }}</td>
-      </DynamicScrollerItem>
-    </template>
-  </DynamicScroller> -->
-
-  <!-- <table class="table">
-    <DynamicScroller
-      :items="items"
-      :min-item-size="54"
-      class="scroller"
-      :listTag="'tbody'"
-      :itemTag="'tr'"
-      :prerender="50"
-      page-mode
-    >
-      <template #before>
-        <thead>
-          <tr>
-            <th scope="col">#</th>
-            <th>
-              <input
-                class="form-check-input"
-                type="checkbox"
-                name="checkbox_items"
-                :indeterminate="isIndeterminate"
-                :checked="isCheckAll"
-                @change.native="onChangeCheckItems()"
-              />
-            </th>
-            <th scope="col">ID</th>
-            <th scope="col">Image</th>
-            <th scope="col">Name</th>
-            <th scope="col">SKU</th>
-            <th scope="col">Action</th>
-          </tr>
-        </thead>
-      </template>
-
-      <template v-slot="{ item, index, active }">
-        <DynamicScrollerItem
-          :item="item"
-          :active="active"
-          :data-index="index"
-          :size-dependencies="[item.field1]"
-          tag="tr"
-        >
-          <td class="text">{{ item.field1 }}</td>
-        </DynamicScrollerItem>
-      </template>
-
-     
-    </DynamicScroller>
-  </table> -->
-
-  <!-- <RecycleScroller
-      v-if="items"
-      class="scroller"
-      :items="items"
-      :item-size="80"
-      page-mode
-      key-field="index"
-      v-slot="{ item }"
-      :itemTag="'tr'"
-      :listTag="'tbody'"
-    >
-      <th scope="row">{{ item.index }}</th>
-
-      <td>
-        <div class="form-check">
-          <input
-            class="form-check-input"
-            type="checkbox"
-            :value="item.index"
-            :checked="isCheckItem(item.index)"
-            name="checkbox_item"
-            @change.native="onChangeSelectItem(item.index)"
-          />
-        </div>
-      </td>
-      <td>{{ item.field1 }}</td>
-      <td>{{ item.field2 }}</td>
-      <td>{{ item.field3 }}</td>
-
-      <td>{{ item.field4 }}</td>
-
-      <td><button type="button" class="btn btn-danger">Delete</button></td>
-    </RecycleScroller> -->
 </template>
 
 <script setup lang="ts">
