@@ -4,62 +4,75 @@
   <DynamicScroller
     :items="items"
     :min-item-size="54"
-    class="scroller table"
-    :prerender="50"
-    :listTag="'table'"
-    :itemTag="'tr'"
+    :prerender="2"
+    class="scroller"
     page-mode
   >
-    <template v-slot="{ item, index, active }">
-      <thead v-if="index === 0">
-        <tr>
-          <th scope="col">#</th>
-          <th>
-            <input
-              class="form-check-input"
-              type="checkbox"
-              name="checkbox_items"
-              :indeterminate="isIndeterminate"
-              :checked="isCheckAll"
-              @change.native="onChangeCheckItems()"
-            />
-          </th>
-          <th scope="col">ID</th>
-          <th scope="col">Image</th>
-          <th scope="col">Name</th>
-          <th scope="col">SKU</th>
-          <th scope="col">Action</th>
-        </tr>
-      </thead>
+    <template #before>
+      <div class="custom-header">
+        <div
+          v-for="(col, indexCol) in headers"
+          :key="indexCol"
+          :style="bindStyle(col.width)"
+          class="custom-header-ceil"
+        >
+          <input
+            v-if="col.type === 'checkbox'"
+            class="form-check-input"
+            type="checkbox"
+            name="checkbox_items"
+            :indeterminate="isIndeterminate"
+            :checked="isCheckAll"
+            @change.native="onChangeCheckItems()"
+          />
 
+          <span v-else class="custom-header-ceil">
+            {{ col.label }}
+          </span>
+        </div>
+      </div>
+    </template>
+
+    <template v-slot="{ item, index, active }">
       <DynamicScrollerItem
-        :item="item"
         :active="active"
+        :item="item"
         :data-index="index"
         :size-dependencies="[item.field1]"
-        tag="tr"
       >
-        <th scope="row">{{ index }} - {{ index % 2 === 0 ? "A" : "B" }}</th>
+        <div class="custom-row">
+          <div
+            v-for="(col, indexCol) in headers"
+            :key="indexCol"
+            :style="bindStyle(col.width)"
+            class="custom-cell"
+          >
+            <div v-if="col.type === 'checkbox'" class="form-check">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                :value="item.id"
+                :checked="isCheckItem(item.id)"
+                name="checkbox_item"
+                @change.native="onChangeSelectItem(item.id)"
+              />
+            </div>
 
-        <td>
-          <div class="form-check">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              :value="item.id"
-              :checked="isCheckItem(item.id)"
-              name="checkbox_item"
-              @change.native="onChangeSelectItem(item.id)"
-            />
+            <div v-else-if="col.type === 'action'">
+              <button
+                type="button"
+                class="btn btn-danger"
+                @click="onDelete(item)"
+              >
+                Delete
+              </button>
+            </div>
+
+            <span v-else>
+              {{ item[col.trackData] }}
+            </span>
           </div>
-        </td>
-        <td>{{ item.field1 }}</td>
-        <td>{{ item.field2 }}</td>
-        <td>{{ item.field3 }}</td>
-
-        <td>{{ item.field4 }}</td>
-
-        <!-- <td><button type="button" class="btn btn-danger">Delete</button></td> -->
+        </div>
       </DynamicScrollerItem>
     </template>
   </DynamicScroller>
@@ -87,6 +100,54 @@ const _supabase = createClient(
   "https://xxxlxrtxsdclcbujdxcq.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4eGx4cnR4c2RjbGNidWpkeGNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDYwODY4MzMsImV4cCI6MjAyMTY2MjgzM30.lNfwkThtnyZUmmPGD2lQAdx5mpX4ZkuFns7239WqsFA"
 );
+
+const headers: Array<{
+  key: string;
+  label: string;
+  width: string;
+
+  trackData: string;
+  type?: string;
+}> = [
+  {
+    key: "index",
+    label: "#",
+    width: "80px",
+    trackData: "id",
+  },
+  {
+    key: "id",
+    label: "#",
+    width: "40px",
+    trackData: "id",
+    type: "checkbox",
+  },
+  {
+    key: "image",
+    label: "Image",
+    width: "auto",
+    trackData: "field1",
+  },
+  {
+    key: "name",
+    label: "Name",
+    width: "auto",
+    trackData: "field2",
+  },
+  {
+    key: "sku",
+    label: "SKU",
+    width: "auto",
+    trackData: "field3",
+  },
+  {
+    key: "action",
+    label: "Action",
+    width: "100px",
+    trackData: "field4",
+    type: "action",
+  },
+];
 
 const items = ref<Array<IItem>>([]);
 
@@ -117,6 +178,17 @@ onMounted(() => {
 });
 
 onUnmounted(() => {});
+
+const bindStyle = (width: string) => {
+  if (width === "auto") {
+    return { flex: 1 };
+  }
+
+  return {
+    minWidth: width,
+    maxWidth: width,
+  };
+};
 
 const isCheckItem = (id: number): boolean => {
   const convertIdToString = id.toString();
@@ -159,11 +231,45 @@ const onChangeCheckItems = () => {
     }
   }
 };
+
+const onDelete = async (item: IItem) => {
+  console.log("item", item);
+  // TODO
+  // const deleteRes = await _supabase
+  //   .from("my_table")
+  //   .delete()
+  //   .eq("field6", item.field6);
+
+  // console.log("deleteRes", deleteRes);
+};
 </script>
 
 <style scoped>
 .scroller {
   width: 100%;
   height: 100%;
+}
+
+.custom-header {
+  display: flex;
+  border-bottom: 1px solid black;
+}
+
+.custom-header-ceil {
+  padding: 8px;
+
+  font-size: 20px;
+  font-weight: bold;
+  text-align: left;
+}
+
+.custom-row {
+  display: flex;
+  border-bottom: 1px solid #ddd;
+}
+
+.custom-cell {
+  padding: 8px;
+  text-align: left;
 }
 </style>
