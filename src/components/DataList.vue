@@ -11,7 +11,7 @@
     page-mode
   >
     <template v-slot="{ item, index, active }">
-      <!-- <thead v-if="index === 0">
+      <thead v-if="index === 0">
         <tr>
           <th scope="col">#</th>
           <th>
@@ -30,7 +30,7 @@
           <th scope="col">SKU</th>
           <th scope="col">Action</th>
         </tr>
-      </thead> -->
+      </thead>
 
       <DynamicScrollerItem
         :item="item"
