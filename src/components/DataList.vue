@@ -3,7 +3,16 @@
     <thead>
       <tr>
         <th scope="col">#</th>
-        <th>checkbox</th>
+        <th>
+          <input
+            class="form-check-input"
+            type="checkbox"
+            name="checkbox_items"
+            :indeterminate="isIndeterminate"
+            :checked="isCheckAll"
+            @change.native="onChangeCheckItems()"
+          />
+        </th>
         <th scope="col">ID</th>
         <th scope="col">Image</th>
         <th scope="col">Name</th>
@@ -14,17 +23,17 @@
     <tbody>
       <tr v-for="(item, index) in items" :key="index">
         <th scope="row">{{ index }}</th>
+
         <td>
           <div class="form-check">
             <input
               class="form-check-input"
               type="checkbox"
-              value=""
-              id="flexCheckDefault"
+              :value="index"
+              :checked="isCheckItem(index)"
+              name="checkbox_item"
+              @change.native="onChangeSelectItem(index)"
             />
-            <label class="form-check-label" for="flexCheckDefault">
-              {{ item.field1 }}
-            </label>
           </div>
         </td>
         <td>{{ item.field1 }}</td>
@@ -38,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 
 import { createClient } from "@supabase/supabase-js";
 
@@ -58,11 +67,39 @@ const _supabase = createClient(
 
 const items = ref<Array<IItem>>();
 
+const selectIds = ref<Array<string>>([]);
+
+const isCheckAll = computed<boolean>(() => {
+  return totalItemSelected.value > 0 &&
+    totalItemSelected.value <= totalItems.value
+    ? true
+    : false;
+});
+
+const isIndeterminate = computed<boolean>(() => {
+  return totalItemSelected.value > 0 &&
+    totalItemSelected.value < totalItems.value
+    ? true
+    : false;
+});
+
+const totalItems = computed<number>(() =>
+  items.value ? items.value.length : 0
+);
+
+const totalItemSelected = computed<number>(() => selectIds.value.length);
+
 onMounted(() => {
   getList();
 });
 
 onUnmounted(() => {});
+
+const isCheckItem = (id: number): boolean => {
+  const convertIdToString = id.toString();
+
+  return selectIds.value.includes(convertIdToString);
+};
 
 const getList = async () => {
   const { data } = await _supabase.from("my_table").select("*");
@@ -71,5 +108,25 @@ const getList = async () => {
   items.value.push(...(data as Array<IItem>));
 };
 
-console.log("testing");
+const onChangeSelectItem = (id: number): void => {
+  const convertIdToString = id.toString();
+  const index = selectIds.value.findIndex((item) => item === convertIdToString);
+
+  if (index !== -1) {
+    selectIds.value.splice(index, 1);
+  } else {
+    selectIds.value.push(convertIdToString);
+  }
+};
+
+const onChangeCheckItems = () => {
+  if (isCheckAll.value) {
+    selectIds.value = [];
+  } else {
+    selectIds.value = [];
+    if (totalItems.value && items.value) {
+      selectIds.value.push(...items.value.map((_, index) => index.toString()));
+    }
+  }
+};
 </script>
