@@ -1,38 +1,53 @@
 <template>
-  <table class="table">
-    <thead>
-      <tr>
-        <th scope="col">#</th>
-        <th>
-          <input
-            class="form-check-input"
-            type="checkbox"
-            name="checkbox_items"
-            :indeterminate="isIndeterminate"
-            :checked="isCheckAll"
-            @change.native="onChangeCheckItems()"
-          />
-        </th>
-        <th scope="col">ID</th>
-        <th scope="col">Image</th>
-        <th scope="col">Name</th>
-        <th scope="col">SKU</th>
-      </tr>
-    </thead>
+  <DynamicScroller
+    :items="items"
+    :min-item-size="54"
+    class="scroller"
+    :prerender="50"
+    :listTag="'table'"
+    :itemTag="'tr'"
+    page-mode
+  >
+    <template v-slot="{ item, index, active }">
+      <thead v-if="index === 0">
+        <tr>
+          <th scope="col">#</th>
+          <th>
+            <input
+              class="form-check-input"
+              type="checkbox"
+              name="checkbox_items"
+              :indeterminate="isIndeterminate"
+              :checked="isCheckAll"
+              @change.native="onChangeCheckItems()"
+            />
+          </th>
+          <th scope="col">ID</th>
+          <th scope="col">Image</th>
+          <th scope="col">Name</th>
+          <th scope="col">SKU</th>
+          <th scope="col">Action</th>
+        </tr>
+      </thead>
 
-    <tbody>
-      <tr v-for="(item, index) in items" :key="index">
-        <th scope="row">{{ index }}</th>
+      <DynamicScrollerItem
+        :item="item"
+        :active="active"
+        :data-index="index"
+        :size-dependencies="[item.field1]"
+        tag="tr"
+      >
+        <th scope="row">{{ item.index }}</th>
 
         <td>
           <div class="form-check">
             <input
               class="form-check-input"
               type="checkbox"
-              :value="index"
-              :checked="isCheckItem(index)"
+              :value="item.id"
+              :checked="isCheckItem(item.id)"
               name="checkbox_item"
-              @change.native="onChangeSelectItem(index)"
+              @change.native="onChangeSelectItem(item.id)"
             />
           </div>
         </td>
@@ -41,13 +56,122 @@
         <td>{{ item.field3 }}</td>
 
         <td>{{ item.field4 }}</td>
-      </tr>
-    </tbody>
-  </table>
+
+        <td><button type="button" class="btn btn-danger">Delete</button></td>
+      </DynamicScrollerItem>
+    </template>
+  </DynamicScroller>
+
+  <!-- <DynamicScroller
+    :items="items"
+    :min-item-size="54"
+    class="scroller"
+    :prerender="50"
+    page-mode
+  >
+    <template v-slot="{ item, index, active }">
+      <DynamicScrollerItem
+        :item="item"
+        :active="active"
+        :data-index="index"
+        :size-dependencies="[item.field1]"
+        tag="tr"
+      >
+        <td class="text">{{ item.field1 }}</td>
+      </DynamicScrollerItem>
+    </template>
+  </DynamicScroller> -->
+
+  <!-- <table class="table">
+    <DynamicScroller
+      :items="items"
+      :min-item-size="54"
+      class="scroller"
+      :listTag="'tbody'"
+      :itemTag="'tr'"
+      :prerender="50"
+      page-mode
+    >
+      <template #before>
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th>
+              <input
+                class="form-check-input"
+                type="checkbox"
+                name="checkbox_items"
+                :indeterminate="isIndeterminate"
+                :checked="isCheckAll"
+                @change.native="onChangeCheckItems()"
+              />
+            </th>
+            <th scope="col">ID</th>
+            <th scope="col">Image</th>
+            <th scope="col">Name</th>
+            <th scope="col">SKU</th>
+            <th scope="col">Action</th>
+          </tr>
+        </thead>
+      </template>
+
+      <template v-slot="{ item, index, active }">
+        <DynamicScrollerItem
+          :item="item"
+          :active="active"
+          :data-index="index"
+          :size-dependencies="[item.field1]"
+          tag="tr"
+        >
+          <td class="text">{{ item.field1 }}</td>
+        </DynamicScrollerItem>
+      </template>
+
+     
+    </DynamicScroller>
+  </table> -->
+
+  <!-- <RecycleScroller
+      v-if="items"
+      class="scroller"
+      :items="items"
+      :item-size="80"
+      page-mode
+      key-field="index"
+      v-slot="{ item }"
+      :itemTag="'tr'"
+      :listTag="'tbody'"
+    >
+      <th scope="row">{{ item.index }}</th>
+
+      <td>
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            :value="item.index"
+            :checked="isCheckItem(item.index)"
+            name="checkbox_item"
+            @change.native="onChangeSelectItem(item.index)"
+          />
+        </div>
+      </td>
+      <td>{{ item.field1 }}</td>
+      <td>{{ item.field2 }}</td>
+      <td>{{ item.field3 }}</td>
+
+      <td>{{ item.field4 }}</td>
+
+      <td><button type="button" class="btn btn-danger">Delete</button></td>
+    </RecycleScroller> -->
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from "vue";
+
+// import DataListItem from "./DataListItem.vue";
+
+import "vue-virtual-scroller/dist/vue-virtual-scroller.css";
 
 import { createClient } from "@supabase/supabase-js";
 
@@ -65,7 +189,7 @@ const _supabase = createClient(
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4eGx4cnR4c2RjbGNidWpkeGNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDYwODY4MzMsImV4cCI6MjAyMTY2MjgzM30.lNfwkThtnyZUmmPGD2lQAdx5mpX4ZkuFns7239WqsFA"
 );
 
-const items = ref<Array<IItem>>();
+const items = ref<Array<IItem>>([]);
 
 const selectIds = ref<Array<string>>([]);
 
@@ -105,7 +229,14 @@ const getList = async () => {
   const { data } = await _supabase.from("my_table").select("*");
 
   items.value = [];
-  items.value.push(...(data as Array<IItem>));
+  items.value.push(
+    ...(data as Array<IItem>).map((item, index) => {
+      return {
+        ...item,
+        id: index,
+      };
+    })
+  );
 };
 
 const onChangeSelectItem = (id: number): void => {
@@ -130,3 +261,10 @@ const onChangeCheckItems = () => {
   }
 };
 </script>
+
+<style scoped>
+.scroller {
+  width: 100%;
+  height: 100%;
+}
+</style>

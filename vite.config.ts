@@ -5,6 +5,10 @@ import vue from "@vitejs/plugin-vue";
 export default defineConfig({
   plugins: [vue()],
 
+  optimizeDeps: {
+    exclude: ["vue-virtual-scroller"],
+  },
+
   server: {
     port: 8206,
   },
