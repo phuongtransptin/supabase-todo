@@ -1,8 +1,10 @@
 import { defineStore } from 'pinia';
 
+import { useRoute } from 'vue-router';
+
 import { useUserDataStore } from './userData.module';
 import { useSupabase } from '../composables/useSupabase';
-import { AuthResponse, AuthTokenResponsePassword } from '@supabase/supabase-js';
+import { AuthOtpResponse, AuthResponse, AuthTokenResponsePassword } from '@supabase/supabase-js';
 import { ISessionUser } from '../models/IModels';
 
 export const useAuthenticationStore = defineStore({
@@ -84,24 +86,38 @@ export const useAuthenticationStore = defineStore({
             return signInRes;
         },
 
-        async signInWithMagicLinkAction(email: string): Promise<void> {
+        async signInWithGGAction() {
             this.isLoadingAction();
 
             const _supabase = useSupabase().connection();
 
-            console.log('test', import.meta.env.BASE_URL + '/access-auth');
+            const signInWithGG = await _supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: useSupabase().getUrl(),
+                },
+            });
+
+            this.isLoadedAction();
+
+            return signInWithGG;
+        },
+
+        async signInWithMagicLinkAction(email: string): Promise<AuthOtpResponse> {
+            this.isLoadingAction();
+
+            const _supabase = useSupabase().connection();
 
             const signInWithMagicLink = await _supabase.auth.signInWithOtp({
                 email: email,
                 options: {
                     shouldCreateUser: false,
-                    emailRedirectTo: 'https://supabase-todo.pages.dev/access-auth',
                 },
             });
 
-            console.log('signInWithMagicLink', signInWithMagicLink);
-
             this.isLoadedAction();
+
+            return signInWithMagicLink;
         },
 
         async signUpUserAction(credentials: { email: string; password: string }): Promise<AuthResponse> {
@@ -109,11 +125,57 @@ export const useAuthenticationStore = defineStore({
 
             const _supabase = useSupabase().connection();
 
-            const authRes = await _supabase.auth.signUp(credentials);
+            const authRes = await _supabase.auth.signUp({
+                ...credentials,
+                options: {
+                    emailRedirectTo: useSupabase().getUrl(),
+                },
+            });
 
             this.isLoadedAction();
 
             return authRes;
+        },
+
+        async verifyOTPEmailAction(payload: { email: string; otp: string }): Promise<AuthResponse> {
+            this.isLoadingAction();
+
+            const _supabase = useSupabase().connection();
+
+            const verifyOtp = await _supabase.auth.verifyOtp({
+                email: payload.email,
+                token: payload.otp,
+                type: 'email',
+            });
+
+            this.isLoadedAction();
+
+            const {
+                data: { session, user },
+            } = verifyOtp;
+
+            if (session && user) {
+                this._state.authenticated = true;
+
+                this.setDataSessionAuthAction({
+                    accessToken: session.access_token,
+                    expiresIn: session.expires_in,
+                    refreshToken: session.refresh_token,
+                    tokenType: session.token_type,
+                    expiresAt: session.expires_at,
+                    providerRefreshToken: session.provider_refresh_token,
+                    providerToken: session.provider_token,
+                });
+
+                useUserDataStore().setDataUserAction({
+                    id: user.id,
+                    email: user.email,
+                    phone: user.phone,
+                    role: user.role,
+                });
+            }
+
+            return verifyOtp;
         },
 
         setDataSessionAuthAction(payload: ISessionUser): void {

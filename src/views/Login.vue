@@ -58,7 +58,7 @@
                     </button>
                 </div>
             </nav>
-            <div class="tab-content" id="nav-tabContent">
+            <div class="tab-content py-4" id="nav-tabContent">
                 <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
                     <form @submit.prevent="onLogin()">
                         <div class="mb-3">
@@ -89,7 +89,18 @@
                 </div>
                 <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
                     <form @submit.prevent="onLoginWithMagicLink()">
-                        <div class="mb-3">
+                        <div v-if="isProcessVerify" class="mb-3">
+                            <label for="exampleInputOTP" class="form-label">OTP</label>
+                            <input
+                                v-model="otp"
+                                :disabled="isLoading"
+                                type="text"
+                                class="form-control"
+                                id="exampleInputOTP"
+                            />
+                        </div>
+
+                        <div v-else class="mb-3">
                             <label for="exampleInputEmail1" class="form-label">Email address</label>
                             <input
                                 v-model="loginModel.email"
@@ -102,11 +113,13 @@
                         </div>
 
                         <button :disabled="isLoading" type="submit" class="btn btn-primary">
-                            Login With Magic Link Email
+                            {{ isProcessVerify ? 'Verify' : 'Login With Magic Link Email' }}
                         </button>
                     </form>
                 </div>
-                <div class="tab-pane fade" id="nav-contact" role="tabpanel" aria-labelledby="nav-contact-tab">...</div>
+                <div class="tab-pane fade" id="nav-contact" role="tabpanel" aria-labelledby="nav-contact-tab">
+                    <button class="btn btn-primary" @click="onSignInWithGG()">Login with google</button>
+                </div>
             </div>
 
             <!-- <div class="text-center">
@@ -146,6 +159,8 @@ const loginModel = ref<{
     password: '',
 });
 
+const otp = ref<string>('');
+
 const stateLogin = ref<{
     status: null | boolean;
     message: string;
@@ -154,6 +169,16 @@ const stateLogin = ref<{
     message: '',
 });
 
+// const stateVerify = ref<{
+//     status: boolean;
+//     message: string;
+// }>({
+//     status: false,
+//     message: '',
+// });
+
+const isProcessVerify = ref<boolean>(false);
+
 const isLoading = computed<boolean>(() => authenticationStore.isLoading);
 
 onMounted(() => {});
@@ -161,10 +186,7 @@ onMounted(() => {});
 onUnmounted(() => {});
 
 const onLogin = async () => {
-    stateLogin.value = {
-        status: null,
-        message: '',
-    };
+    resetStateLogin();
 
     const { error } = await authenticationStore.signInWithPasswordAction(toRaw(loginModel.value));
 
@@ -175,17 +197,47 @@ const onLogin = async () => {
 };
 
 const onLoginWithMagicLink = async () => {
-    // stateLogin.value = {
-    //     status: null,
-    //     message: '',
-    // };
+    resetStateLogin();
 
-    await authenticationStore.signInWithMagicLinkAction(toRaw(loginModel.value.email));
+    if (isProcessVerify.value) {
+        const { error } = await authenticationStore.verifyOTPEmailAction({
+            email: toRaw(loginModel.value.email),
+            otp: toRaw(otp.value),
+        });
 
-    // stateLogin.value = {
-    //     status: error ? false : true,
-    //     message: error ? error.message : 'Successfully!',
-    // };
+        stateLogin.value = {
+            status: error ? false : true,
+            message: error ? error.message : 'Successfully!',
+        };
+
+        if (!error) {
+            isProcessVerify.value = false;
+        }
+
+        return;
+    }
+
+    const { error } = await authenticationStore.signInWithMagicLinkAction(toRaw(loginModel.value.email));
+
+    stateLogin.value = {
+        status: error ? false : true,
+        message: error ? error.message : 'Successfully!',
+    };
+
+    isProcessVerify.value = error ? false : true;
+};
+
+const onSignInWithGG = async () => {
+    const signInWithGGAction = await authenticationStore.signInWithGGAction();
+
+    console.log('signInWithGGAction', signInWithGGAction);
+};
+
+const resetStateLogin = (): void => {
+    stateLogin.value = {
+        status: null,
+        message: '',
+    };
 };
 </script>
 
