@@ -98,7 +98,7 @@ interface IItem {
 
 const _supabase = createClient(
   "https://xxxlxrtxsdclcbujdxcq.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4eGx4cnR4c2RjbGNidWpkeGNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDYwODY4MzMsImV4cCI6MjAyMTY2MjgzM30.lNfwkThtnyZUmmPGD2lQAdx5mpX4ZkuFns7239WqsFA"
+  import.meta.env.VITE_SUPAPAGE_API_KEY
 );
 
 const headers: Array<{

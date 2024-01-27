@@ -1,15 +1,23 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
+
 import vue from "@vitejs/plugin-vue";
 
-// https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [vue()],
+// // https://vitejs.dev/config/
+export default (config: { mode: string }) => {
+  process.env = {
+    ...process.env,
+    ...loadEnv(config.mode, process.cwd(), ""),
+  };
 
-  optimizeDeps: {
-    exclude: ["vue-virtual-scroller"],
-  },
+  return defineConfig({
+    plugins: [vue()],
 
-  server: {
-    port: 8206,
-  },
-});
+    optimizeDeps: {
+      exclude: ["vue-virtual-scroller"],
+    },
+
+    server: {
+      port: 8206,
+    },
+  });
+};
