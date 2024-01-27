@@ -1,7 +1,5 @@
 import { defineStore } from 'pinia';
 
-import { useRoute } from 'vue-router';
-
 import { useUserDataStore } from './userData.module';
 import { useSupabase } from '../composables/useSupabase';
 import { AuthOtpResponse, AuthResponse, AuthTokenResponsePassword } from '@supabase/supabase-js';
