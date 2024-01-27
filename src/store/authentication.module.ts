@@ -95,7 +95,7 @@ export const useAuthenticationStore = defineStore({
                 email: email,
                 options: {
                     shouldCreateUser: false,
-                    emailRedirectTo: import.meta.env.BASE_URL + '/access-auth',
+                    emailRedirectTo: 'https://supabase-todo.pages.dev/access-auth',
                 },
             });
 
