@@ -6,9 +6,21 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onBeforeMount, onMounted } from 'vue';
 
 import Navbar from './components/Navbar.vue';
+
+import { useUserDataStore } from '../src/store/userData.module';
+
+const userDataStore = useUserDataStore();
+
+onBeforeMount(() => {
+    const authTokenLocal = localStorage.getItem('sb-xxxlxrtxsdclcbujdxcq-auth-token');
+
+    if (authTokenLocal) {
+        userDataStore.getUser();
+    }
+});
 
 onMounted(() => {});
 </script>

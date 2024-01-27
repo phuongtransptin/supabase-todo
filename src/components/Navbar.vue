@@ -32,7 +32,11 @@
                             </a>
 
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <li><span class="dropdown-item cursor-pointer text-danger">Logout</span></li>
+                                <li>
+                                    <span class="dropdown-item cursor-pointer text-danger" @click="onSignOut()"
+                                        >Logout</span
+                                    >
+                                </li>
                             </ul>
                         </li>
                     </template>
@@ -68,6 +72,10 @@ const user = computed<IUser | null>(() => (isAuthenticated.value ? userDataStore
 onMounted(() => {});
 
 onUnmounted(() => {});
+
+const onSignOut = () => {
+    authenticationStore.signOutAction();
+};
 </script>
 
 <style>

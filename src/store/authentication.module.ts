@@ -43,6 +43,10 @@ export const useAuthenticationStore = defineStore({
             this._state.isLoaded = true;
         },
 
+        authenticatedAction(): void {
+            this._state.authenticated = true;
+        },
+
         async signInWithPasswordAction(credentials: {
             email: string;
             password: string;
@@ -135,6 +139,21 @@ export const useAuthenticationStore = defineStore({
             return authRes;
         },
 
+        async signOutAction() {
+            this.isLoadingAction();
+
+            const _supabase = useSupabase().connection();
+
+            const { error } = await _supabase.auth.signOut();
+
+            this.isLoadedAction();
+
+            if (!error) {
+                useUserDataStore().resetDataAction();
+                this.resetDataAction();
+            }
+        },
+
         async verifyOTPEmailAction(payload: { email: string; otp: string }): Promise<AuthResponse> {
             this.isLoadingAction();
 
@@ -186,6 +205,22 @@ export const useAuthenticationStore = defineStore({
                 providerRefreshToken: payload.providerRefreshToken,
                 providerToken: payload.providerToken,
             };
+        },
+
+        resetDataAction() {
+            this._state.session = {
+                accessToken: '',
+                expiresIn: 0,
+                refreshToken: '',
+                tokenType: '',
+                expiresAt: 0,
+                providerRefreshToken: '',
+                providerToken: '',
+            };
+
+            this._state.authenticated = false;
+            this._state.isLoaded = false;
+            this._state.isLoaded = false;
         },
     },
 });

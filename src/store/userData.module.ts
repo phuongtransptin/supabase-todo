@@ -1,5 +1,9 @@
 import { defineStore } from 'pinia';
 
+import { useSupabase } from '../composables/useSupabase';
+
+import { useAuthenticationStore } from './authentication.module';
+
 import { IUser } from '../models/IModels';
 
 export const useUserDataStore = defineStore({
@@ -18,6 +22,28 @@ export const useUserDataStore = defineStore({
     },
 
     actions: {
+        async getUser(): Promise<boolean> {
+            const _supabase = useSupabase().connection();
+
+            const {
+                data: { user },
+                error,
+            } = await _supabase.auth.getUser();
+
+            if (user) {
+                this.setDataUserAction({
+                    id: user.id,
+                    email: user.email,
+                    phone: user.phone,
+                    role: user.role,
+                });
+
+                useAuthenticationStore().authenticatedAction();
+            }
+
+            return error ? false : true;
+        },
+
         setDataUserAction(payload: IUser): void {
             this._state.user = {
                 id: payload.id,
